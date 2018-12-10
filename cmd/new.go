@@ -63,7 +63,7 @@ func newNewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:        "new [template|url]",
 		SuggestFor: []string{"init", "create"},
-		Short:      "Create a new Pulumi project",
+		Short:      "Create and deploy a new Pulumi project",
 		Args:       cmdutil.MaximumNArgs(1),
 		Run: cmdutil.RunFunc(func(cmd *cobra.Command, args []string) error {
 			interactive := cmdutil.Interactive()
@@ -191,7 +191,7 @@ func newNewCmd() *cobra.Command {
 			// Show instructions, if we're going to show at least one prompt.
 			hasAtLeastOnePrompt := (name == "") || (description == "") || (!generateOnly && stack == "")
 			if !yes && hasAtLeastOnePrompt {
-				fmt.Println("This command will walk you through creating a new Pulumi project.")
+				fmt.Println("This command will walk you through creating and deploying a new Pulumi project.")
 				fmt.Println()
 				fmt.Println("Enter a value or leave blank to accept the default, and press <ENTER>.")
 				fmt.Println("Press ^C at any time to quit.")

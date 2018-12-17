@@ -779,7 +779,7 @@ func promptForValue(
 	for {
 		if defaultValue == "" {
 			prompt = opts.Color.Colorize(
-				fmt.Sprintf("%s%s:%s ", colors.BrightCyan, prompt, colors.Reset))
+				fmt.Sprintf("%s%s:%s ", colors.SpecPrompt, prompt, colors.Reset))
 		} else {
 			defaultValuePrompt := defaultValue
 			if secret {
@@ -787,7 +787,7 @@ func promptForValue(
 			}
 
 			prompt = opts.Color.Colorize(
-				fmt.Sprintf("%s%s: (%s)%s ", colors.BrightCyan, prompt, defaultValuePrompt, colors.Reset))
+				fmt.Sprintf("%s%s:%s (%s) ", colors.SpecPrompt, prompt, colors.Reset, defaultValuePrompt))
 		}
 		fmt.Print(prompt)
 

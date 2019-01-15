@@ -38,6 +38,7 @@ import (
 func newConfigCmd() *cobra.Command {
 	var stack string
 	var showSecrets bool
+	var jsonOut bool
 
 	cmd := &cobra.Command{
 		Use:   "config",
@@ -56,7 +57,7 @@ func newConfigCmd() *cobra.Command {
 				return err
 			}
 
-			return listConfig(stack, showSecrets)
+			return listConfig(stack, showSecrets, jsonOut)
 		}),
 	}
 
@@ -69,6 +70,9 @@ func newConfigCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVar(
 		&stackConfigFile, "config-file", "",
 		"Use the configuration values in the specified file rather than detecting the file name")
+	cmd.PersistentFlags().BoolVarP(
+		&jsonOut, "json", "j", false,
+		"Emit outputs as JSON when listing config")
 
 	cmd.AddCommand(newConfigGetCmd(&stack))
 	cmd.AddCommand(newConfigRmCmd(&stack))
@@ -361,7 +365,12 @@ func prettyKeyForProject(k config.Key, proj *workspace.Project) string {
 	return fmt.Sprintf("%s:%s", k.Namespace(), k.Name())
 }
 
-func listConfig(stack backend.Stack, showSecrets bool) error {
+type configJSON struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func listConfig(stack backend.Stack, showSecrets bool, jsonOut bool) error {
 	ps, err := loadProjectStack(stack)
 	if err != nil {
 		return err
@@ -389,19 +398,31 @@ func listConfig(stack backend.Stack, showSecrets bool) error {
 	sort.Sort(keys)
 
 	rows := []cmdutil.TableRow{}
+	jsonRows := []configJSON{}
 	for _, key := range keys {
 		decrypted, err := cfg[key].Value(decrypter)
 		if err != nil {
 			return errors.Wrap(err, "could not decrypt configuration value")
 		}
 
-		rows = append(rows, cmdutil.TableRow{Columns: []string{prettyKey(key), decrypted}})
+		// key value pair in a tuple form
+		tuple := []string{prettyKey(key), decrypted}
+
+		if jsonOut {
+			jsonRows = append(jsonRows, configJSON{Key: tuple[0], Value: tuple[1]})
+		} else {
+			rows = append(rows, cmdutil.TableRow{Columns: tuple})
+		}
 	}
 
-	cmdutil.PrintTable(cmdutil.Table{
-		Headers: []string{"KEY", "VALUE"},
-		Rows:    rows,
-	})
+	if jsonOut {
+		printJSON(jsonRows)
+	} else {
+		cmdutil.PrintTable(cmdutil.Table{
+			Headers: []string{"KEY", "VALUE"},
+			Rows:    rows,
+		})
+	}
 	return nil
 }
 

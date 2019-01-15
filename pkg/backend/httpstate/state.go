@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pulumi/pulumi/pkg/diag"
 	"github.com/pulumi/pulumi/pkg/util/contract"
 
 	"github.com/pkg/errors"
@@ -200,6 +201,11 @@ func (u *cloudUpdate) RecordAndDisplayEvents(
 	for e := range events {
 		// First echo the event to the local display.
 		displayEvents <- e
+
+		if e.Type == engine.DiagEvent && (e.Payload.(engine.DiagEventPayload)).Severity == diag.Debug && !opts.Debug {
+			// Don't send diagnostics events to the service unless `--debug` was requested.
+			continue
+		}
 
 		// Then render and record the event for posterity.
 		eventIdx++

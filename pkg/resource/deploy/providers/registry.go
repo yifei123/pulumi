@@ -308,7 +308,8 @@ func (r *Registry) Create(urn resource.URN,
 		return "", nil, resource.StatusOK, err
 	}
 
-	id := resource.ID(uuid.NewV4().String())
+	u, _ := uuid.NewV4()
+	id := resource.ID(u.String())
 	contract.Assert(id != UnknownID)
 
 	r.setProvider(mustNewReference(urn, id), provider)
